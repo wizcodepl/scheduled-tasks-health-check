@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Attributes;
+namespace Spatie\ScheduledTasksHealthCheck;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
