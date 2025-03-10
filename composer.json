@@ -31,7 +31,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "WizcodePl\\ScheduledTasksHealthCheck\\Tests\\": "tests/",
+            "WizcodePl\\ScheduledTasksHealthCheck\\Tests\\": "tests/"
         }
     },
     "scripts": {

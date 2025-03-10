@@ -22,8 +22,9 @@ composer require wizcodepl/scheduled-tasks-health-check
 ## Usage
 
 ```php
-$scheduledTasksHealthCheck = new WizcodePl\ScheduledTasksHealthCheck();
-echo $scheduledTasksHealthCheck->echoPhrase('Hello, WizcodePl!');
+Health::checks([
+    \App\Attributes\ScheduledTasksHealthCheck::new(),
+]);
 ```
 
 ## Testing
