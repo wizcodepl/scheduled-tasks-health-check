@@ -29,6 +29,11 @@
         "spatie/laravel-ray": "^1.35",
         "spatie/laravel-health": "^1.2"
     },
+    "autoload": {
+        "psr-4": {
+            "WizcodePl\\JobsCounterHealthCheck\\": "src/"
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "WizcodePl\\ScheduledTasksHealthCheck\\Tests\\": "tests/"
