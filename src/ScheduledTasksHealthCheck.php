@@ -33,7 +33,7 @@ class ScheduledTasksHealthCheck extends Check
             $isDelayed = $lastFinishedAt && $lastFinishedAt->diffInMinutes($now) > $graceTime;
             $status = 'ok';
 
-            if ($lastFailedAt) {
+            if ($lastFailedAt >= $lastFinishedAt) {
                 $status = 'failed';
                 $failedTasks++;
             } elseif ($isDelayed) {
