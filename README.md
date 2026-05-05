@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="art/logo.svg" alt="Scheduled Tasks Health Check" width="200">
+</p>
+
 # About
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/wizcodepl/scheduled-tasks-health-check.svg?style=flat-square)](https://packagist.org/packages/wizcodepl/scheduled-tasks-health-check)

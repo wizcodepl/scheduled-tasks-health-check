@@ -2,7 +2,7 @@
 
 All notable changes to `scheduled-tasks-health-check` will be documented in this file.
 
-## 1.1.0 - 2026-05-05
+## 1.0.5 - 2026-05-06
 
 ### Fixed
 - Brand-new tasks (no `last_finished_at` and no `last_failed_at`) were reported as **failed** because `null >= null` evaluates to `true` in PHP. They are now reported as `never_run` and counted as healthy.
