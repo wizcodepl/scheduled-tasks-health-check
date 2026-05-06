@@ -20,6 +20,11 @@ jobs:
             testbench: '9.*'
           - laravel: '12.*'
             testbench: '10.*'
+        exclude:
+          # Laravel 11's pinned Spatie / Symfony deps don't ship PHP 8.5
+          # support yet. Re-enable when upstream catches up.
+          - php: '8.5'
+            laravel: '11.*'
 
     name: PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }}
 
