@@ -17,7 +17,8 @@
         }
     ],
     "require": {
-        "php": "^8.0"
+        "php": "^8.0",
+        "dragonmantank/cron-expression": "^3.3"
     },
     "require-dev": {
         "larastan/larastan": "^2.9||^3.0",

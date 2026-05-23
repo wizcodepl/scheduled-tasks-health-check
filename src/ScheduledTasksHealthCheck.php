@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace WizcodePl\ScheduledTasksHealthCheck;
 
 use Carbon\Carbon;
+use Cron\CronExpression;
 use Illuminate\Support\Facades\DB;
 use Spatie\Health\Checks\Check;
 use Spatie\Health\Checks\Result;
 
 /**
  * Reads `monitored_scheduled_tasks` (Spatie's schedule monitor table) and
- * reports tasks that are currently failing or running behind schedule.
+ * reports tasks with their full schedule: cron, last finish/fail, next run.
  *
  * Per-task status is decided as follows:
  *   - `never_run`  — task has neither finished nor failed yet (brand new
@@ -72,18 +73,18 @@ class ScheduledTasksHealthCheck extends Check
     }
 
     /**
-     * @return iterable<int, object{name: string, last_finished_at: ?string, last_failed_at: ?string, grace_time_in_minutes: ?int}>
+     * @return iterable<int, object{name: string, cron_expression: ?string, last_finished_at: ?string, last_failed_at: ?string, grace_time_in_minutes: ?int}>
      */
     protected function fetchTasks(): iterable
     {
         return DB::table('monitored_scheduled_tasks')
-            ->select(['name', 'last_finished_at', 'last_failed_at', 'grace_time_in_minutes'])
+            ->select(['name', 'cron_expression', 'last_finished_at', 'last_failed_at', 'grace_time_in_minutes'])
             ->get();
     }
 
     /**
-     * @param  object{name: string, last_finished_at: ?string, last_failed_at: ?string, grace_time_in_minutes: ?int}  $task
-     * @return array{name: string, last_finished_at: string, last_failed_at: string, grace_time_in_minutes: int, status: string}
+     * @param  object{name: string, cron_expression: ?string, last_finished_at: ?string, last_failed_at: ?string, grace_time_in_minutes: ?int}  $task
+     * @return array{name: string, cron: ?string, last_finished_at: string, last_finished_diff: ?string, last_failed_at: string, next_run_at: ?string, next_run_diff: ?string, grace_time_in_minutes: int, status: string}
      */
     protected function evaluate(object $task, Carbon $now): array
     {
@@ -91,12 +92,25 @@ class ScheduledTasksHealthCheck extends Check
         $lastFailedAt = $task->last_failed_at !== null ? Carbon::parse($task->last_failed_at) : null;
         $graceTime = $task->grace_time_in_minutes ?? $this->defaultGraceTimeInMinutes;
 
+        $nextRun = null;
+        if ($task->cron_expression !== null) {
+            try {
+                $nextRun = Carbon::instance((new CronExpression($task->cron_expression))->getNextRunDate());
+            } catch (\Throwable) {
+                $nextRun = null;
+            }
+        }
+
         $status = $this->resolveStatus($lastFinishedAt, $lastFailedAt, $graceTime, $now);
 
         return [
             'name' => $task->name,
+            'cron' => $task->cron_expression,
             'last_finished_at' => $lastFinishedAt?->toDateTimeString() ?? 'N/A',
+            'last_finished_diff' => $lastFinishedAt?->diffForHumans(),
             'last_failed_at' => $lastFailedAt?->toDateTimeString() ?? 'N/A',
+            'next_run_at' => $nextRun?->toDateTimeString(),
+            'next_run_diff' => $nextRun?->diffForHumans(),
             'grace_time_in_minutes' => $graceTime,
             'status' => $status,
         ];
@@ -116,8 +130,6 @@ class ScheduledTasksHealthCheck extends Check
         }
 
         if ($lastFinishedAt !== null) {
-            // Carbon 2 returns absolute, Carbon 3 returns signed — `max(0, …)`
-            // collapses both into "minutes elapsed since the task last finished".
             $minutesSinceFinish = max(0, (int) $lastFinishedAt->diffInMinutes($now));
 
             if ($minutesSinceFinish > $graceTime) {
